@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Hash em C - Codigo Fonte</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e3a8a'/%3E%3Ctext x='50' y='70' font-family='Segoe Script,cursive' font-size='40' font-weight='bold' text-anchor='middle' fill='white'%3ETH%3C/text%3E%3Ctext x='50' y='70' font-family='Segoe Script,cursive' font-size='40' font-weight='bold' text-anchor='middle' fill='white'%3E%3Ctspan dx='24'%3EC%3C/tspan%3E%3C/text%3E%3Ctext x='50' y='70' font-family='Segoe Script,cursive' font-size='40' font-weight='bold' text-anchor='middle' fill='%230a0a3e'%3E%3Ctspan dx='24'%3EC%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a3e 0%, #0f3460 50%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideIn 1.2s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 42px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+        }
+
+        .subtitle {
+            color: #a8daff;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: #fff;
+            margin: 5px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .code-container {
+            background: #000;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: scaleIn 1.5s ease-out;
+            border: 2px solid #1e3a8a;
+            margin-bottom: 30px;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .code-header {
+            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .code-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .code-btn {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .code-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-close { background: #ff5f56; }
+        .btn-minimize { background: #ffbd2e; }
+        .btn-maximize { background: #27c93f; }
+
+        .code-wrapper {
+            display: flex;
+            max-height: 600px;
+            overflow: hidden;
+        }
+
+        .line-numbers {
+            color: #4a5568;
+            text-align: right;
+            padding: 30px 20px;
+            user-select: none;
+            border-right: 2px solid #1e3a8a;
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+
+        .line-numbers span {
+            display: block;
+        }
+
+        .code-content {
+            flex: 1;
+            overflow: auto;
+            padding: 30px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-content::-webkit-scrollbar,
+        .line-numbers::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .code-content::-webkit-scrollbar-track,
+        .line-numbers::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .code-content::-webkit-scrollbar-thumb,
+        .line-numbers::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 6px;
+        }
+
+        .code-content::-webkit-scrollbar-thumb:hover,
+        .line-numbers::-webkit-scrollbar-thumb:hover {
+            background: #60a5fa;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .keyword { color: #c792ea; font-weight: bold; }
+        .type { color: #82aaff; font-weight: bold; }
+        .function { color: #82aaff; }
+        .string { color: #c3e88d; }
+        .comment { color: #546e7a; font-style: italic; }
+        .number { color: #f78c6c; }
+        .preprocessor { color: #89ddff; }
+        .define { color: #ffcb6b; }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.6);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            animation: fadeIn 2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #a8daff;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 28px; }
+            .code-wrapper { max-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Gerenciamento de Senhas</h1>
+            <p class="subtitle">Tabela Hash em C com Tratamento de Colisoes por Encadeamento</p>
+            <div>
+                <span class="info-badge">Linguagem: C</span>
+                <span class="info-badge">Estrutura: Hash Table</span>
+                <span class="info-badge">Colisoes: Encadeamento</span>
+                <span class="info-badge" id="totalLinhasBadge">440 linhas</span>
+            </div>
+        </header>
+
+        <div class="code-container">
+            <div class="code-header">
+                <div class="code-title">hash_table_senhas.c</div>
+                <div class="code-buttons">
+                    <div class="code-btn btn-close"></div>
+                    <div class="code-btn btn-minimize"></div>
+                    <div class="code-btn btn-maximize"></div>
+                </div>
+            </div>
+            
+            <div class="code-wrapper">
+                <div class="line-numbers" id="lineNumbers"></div>
+                <div class="code-content">
+                    <pre id="codeDisplay"></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="copiarCodigo()">Copiar Codigo</button>
+            <button class="btn" onclick="baixarArquivo()">Baixar .c</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalLinhas">440</div>
+                <div class="stat-label">Linhas de Codigo</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">15</div>
+                <div class="stat-label">Funcoes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Estruturas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Funcional</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codigoC = `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TAMANHO_TABELA 10
+
+// ========== ESTRUTURAS DE DADOS ==========
+
+// Estrutura para armazenar um usuario (nome e senha)
+typedef struct Usuario {
+    char nomeUsuario[50];
+    char senha[50];
+    struct Usuario *proximo; // Para tratamento de colisoes (encadeamento)
+} Usuario;
+
+// Estrutura da tabela hash
+typedef struct TabelaHash {
+    Usuario *tabela[TAMANHO_TABELA]; // Array de ponteiros para usuarios
+    int totalUsuarios;
+    int totalColisoes;
+} TabelaHash;
+
+// ========== FUNCOES DE HASH ==========
+
+// Funcao de hash simples (metodo da divisao)
+int funcaoHashSimples(char *chave) {
+    int soma = 0;
+    for (int i = 0; chave[i] != '\\0'; i++) {
+        soma += chave[i];
+    }
+    return soma % TAMANHO_TABELA;
+}
+
+// Funcao de hash mais sofisticada (djb2 algorithm)
+unsigned long funcaoHashDJB2(char *chave) {
+    unsigned long hash = 5381;
+    int c;
+    
+    while ((c = *chave++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    
+    return hash % TAMANHO_TABELA;
+}
+
+// ========== FUNCOES DA TABELA HASH ==========
+
+// Inicializa a tabela hash
+TabelaHash* criarTabelaHash() {
+    TabelaHash *tabela = (TabelaHash*)malloc(sizeof(TabelaHash));
+    
+    if (tabela == NULL) {
+        printf("Erro ao alocar memoria para a tabela!\\n");
+        exit(1);
+    }
+    
+    // Inicializa todas as posicoes como NULL
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        tabela->tabela[i] = NULL;
+    }
+    
+    tabela->totalUsuarios = 0;
+    tabela->totalColisoes = 0;
+    
+    return tabela;
+}
+
+// Cria um novo usuario
+Usuario* criarUsuario(char *nomeUsuario, char *senha) {
+    Usuario *novoUsuario = (Usuario*)malloc(sizeof(Usuario));
+    
+    if (novoUsuario == NULL) {
+        printf("Erro ao alocar memoria para usuario!\\n");
+        return NULL;
+    }
+    
+    strcpy(novoUsuario->nomeUsuario, nomeUsuario);
+    strcpy(novoUsuario->senha, senha);
+    novoUsuario->proximo = NULL;
+    
+    return novoUsuario;
+}
+
+// Insere um usuario na tabela hash (com tratamento de colisoes por encadeamento)
+int inserirUsuario(TabelaHash *tabela, char *nomeUsuario, char *senha) {
+    // Calcula o indice usando a funcao hash
+    int indice = funcaoHashDJB2(nomeUsuario);
+    
+    printf("\\n-> Hash gerado para '%s': %d\\n", nomeUsuario, indice);
+    
+    // Cria o novo usuario
+    Usuario *novoUsuario = criarUsuario(nomeUsuario, senha);
+    if (novoUsuario == NULL) {
+        return 0;
+    }
+    
+    // Verifica se ja existe usuario naquela posicao (colisao)
+    if (tabela->tabela[indice] == NULL) {
+        // Posicao vazia - insere diretamente
+        tabela->tabela[indice] = novoUsuario;
+        printf("   Usuario inserido na posicao %d (sem colisao)\\n", indice);
+    } else {
+        // Colisao detectada - usa encadeamento (lista ligada)
+        printf("   COLISAO detectada na posicao %d!\\n", indice);
+        tabela->totalColisoes++;
+        
+        // Verifica se o usuario ja existe
+        Usuario *atual = tabela->tabela[indice];
+        Usuario *anterior = NULL;
+        
+        while (atual != NULL) {
+            if (strcmp(atual->nomeUsuario, nomeUsuario) == 0) {
+                printf("   ERRO: Usuario '%s' ja existe!\\n", nomeUsuario);
+                free(novoUsuario);
+                return 0;
+            }
+            anterior = atual;
+            atual = atual->proximo;
+        }
+        
+        // Adiciona no final da lista (encadeamento)
+        anterior->proximo = novoUsuario;
+        printf("   Usuario inserido via encadeamento (lista ligada)\\n");
+    }
+    
+    tabela->totalUsuarios++;
+    printf("   Status: Usuario '%s' cadastrado com sucesso!\\n", nomeUsuario);
+    
+    return 1;
+}
+
+// Busca um usuario na tabela hash
+Usuario* buscarUsuario(TabelaHash *tabela, char *nomeUsuario) {
+    int indice = funcaoHashDJB2(nomeUsuario);
+    
+    printf("\\n-> Buscando '%s' no indice %d...\\n", nomeUsuario, indice);
+    
+    Usuario *atual = tabela->tabela[indice];
+    int posicaoLista = 1;
+    
+    // Percorre a lista ligada naquela posicao
+    while (atual != NULL) {
+        if (strcmp(atual->nomeUsuario, nomeUsuario) == 0) {
+            printf("   Usuario encontrado na posicao %d", indice);
+            if (posicaoLista > 1) {
+                printf(" (item %d da lista encadeada)", posicaoLista);
+            }
+            printf("\\n");
+            return atual;
+        }
+        atual = atual->proximo;
+        posicaoLista++;
+    }
+    
+    printf("   Usuario NAO encontrado!\\n");
+    return NULL;
+}
+
+// Autentica um usuario (verifica senha)
+int autenticarUsuario(TabelaHash *tabela, char *nomeUsuario, char *senha) {
+    Usuario *usuario = buscarUsuario(tabela, nomeUsuario);
+    
+    if (usuario == NULL) {
+        return 0;
+    }
+    
+    if (strcmp(usuario->senha, senha) == 0) {
+        printf("   Autenticacao SUCESSO! Senha correta.\\n");
+        return 1;
+    } else {
+        printf("   Autenticacao FALHOU! Senha incorreta.\\n");
+        return 0;
+    }
+}
+
+// Remove um usuario da tabela hash
+int removerUsuario(TabelaHash *tabela, char *nomeUsuario) {
+    int indice = funcaoHashDJB2(nomeUsuario);
+    
+    printf("\\n-> Removendo usuario '%s'...\\n", nomeUsuario);
+    
+    Usuario *atual = tabela->tabela[indice];
+    Usuario *anterior = NULL;
+    
+    while (atual != NULL) {
+        if (strcmp(atual->nomeUsuario, nomeUsuario) == 0) {
+            // Usuario encontrado - remove
+            if (anterior == NULL) {
+                // Primeiro da lista
+                tabela->tabela[indice] = atual->proximo;
+            } else {
+                // Meio ou fim da lista
+                anterior->proximo = atual->proximo;
+            }
+            
+            free(atual);
+            tabela->totalUsuarios--;
+            printf("   Usuario '%s' removido com sucesso!\\n", nomeUsuario);
+            return 1;
+        }
+        anterior = atual;
+        atual = atual->proximo;
+    }
+    
+    printf("   Usuario nao encontrado!\\n");
+    return 0;
+}
+
+// Exibe toda a tabela hash
+void exibirTabelaHash(TabelaHash *tabela) {
+    printf("\\n");
+    printf("===============================================\\n");
+    printf("        VISUALIZACAO DA TABELA HASH\\n");
+    printf("===============================================\\n");
+    printf("Total de usuarios: %d\\n", tabela->totalUsuarios);
+    printf("Total de colisoes tratadas: %d\\n", tabela->totalColisoes);
+    printf("Tamanho da tabela: %d\\n", TAMANHO_TABELA);
+    printf("-----------------------------------------------\\n");
+    
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        printf("[%2d] ", i);
+        
+        if (tabela->tabela[i] == NULL) {
+            printf("(vazio)\\n");
+        } else {
+            Usuario *atual = tabela->tabela[i];
+            int cont = 1;
+            
+            while (atual != NULL) {
+                printf("-> %s", atual->nomeUsuario);
+                if (cont > 1) {
+                    printf(" (colisao %d)", cont);
+                }
+                atual = atual->proximo;
+                if (atual != NULL) {
+                    printf(" ");
+                }
+                cont++;
+            }
+            printf("\\n");
+        }
+    }
+    printf("===============================================\\n\\n");
+}
+
+// Exibe estatisticas da tabela
+void exibirEstatisticas(TabelaHash *tabela) {
+    int posicoesOcupadas = 0;
+    int maiorCadeia = 0;
+    
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        if (tabela->tabela[i] != NULL) {
+            posicoesOcupadas++;
+            
+            // Conta tamanho da cadeia
+            int tamanho = 0;
+            Usuario *atual = tabela->tabela[i];
+            while (atual != NULL) {
+                tamanho++;
+                atual = atual->proximo;
+            }
+            
+            if (tamanho > maiorCadeia) {
+                maiorCadeia = tamanho;
+            }
+        }
+    }
+    
+    float fatorCarga = (float)tabela->totalUsuarios / TAMANHO_TABELA;
+    float taxaOcupacao = (float)posicoesOcupadas / TAMANHO_TABELA * 100;
+    
+    printf("\\n========== ESTATISTICAS DA TABELA ==========\\n");
+    printf("Fator de carga: %.2f\\n", fatorCarga);
+    printf("Taxa de ocupacao: %.2f%%\\n", taxaOcupacao);
+    printf("Maior cadeia de colisoes: %d\\n", maiorCadeia);
+    printf("Colisoes totais: %d\\n", tabela->totalColisoes);
+    printf("===========================================\\n\\n");
+}
+
+// Libera toda a memoria da tabela
+void destruirTabelaHash(TabelaHash *tabela) {
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        Usuario *atual = tabela->tabela[i];
+        
+        while (atual != NULL) {
+            Usuario *temp = atual;
+            atual = atual->proximo;
+            free(temp);
+        }
+    }
+    
+    free(tabela);
+    printf("Tabela hash destruida e memoria liberada.\\n");
+}
+
+// ========== FUNCOES DE TESTE ==========
+
+void testeAutomatico(TabelaHash *tabela) {
+    printf("\\n");
+    printf("###############################################\\n");
+    printf("#     INICIANDO TESTES AUTOMATICOS          #\\n");
+    printf("###############################################\\n");
+    
+    printf("\\n=== TESTE 1: Insercao de usuarios ===\\n");
+    inserirUsuario(tabela, "alice", "senha123");
+    inserirUsuario(tabela, "bob", "bobpass");
+    inserirUsuario(tabela, "carlos", "abc123");
+    inserirUsuario(tabela, "diana", "qwerty");
+    inserirUsuario(tabela, "eduardo", "pass456");
+    
+    printf("\\n=== TESTE 2: Forcando colisoes ===\\n");
+    inserirUsuario(tabela, "maria", "maria123");
+    inserirUsuario(tabela, "joao", "joao456");
+    inserirUsuario(tabela, "ana", "ana789");
+    
+    printf("\\n=== TESTE 3: Usuario duplicado ===\\n");
+    inserirUsuario(tabela, "alice", "outrasenha");
+    
+    exibirTabelaHash(tabela);
+    
+    printf("\\n=== TESTE 4: Busca de usuarios ===\\n");
+    buscarUsuario(tabela, "alice");
+    buscarUsuario(tabela, "carlos");
+    buscarUsuario(tabela, "inexistente");
+    
+    printf("\\n=== TESTE 5: Autenticacao ===\\n");
+    autenticarUsuario(tabela, "alice", "senha123");
+    autenticarUsuario(tabela, "alice", "senhaerrada");
+    autenticarUsuario(tabela, "bob", "bobpass");
+    
+    printf("\\n=== TESTE 6: Remocao de usuarios ===\\n");
+    removerUsuario(tabela, "diana");
+    removerUsuario(tabela, "inexistente");
+    
+    exibirTabelaHash(tabela);
+    exibirEstatisticas(tabela);
+}
+
+// ========== MENU INTERATIVO ==========
+
+void exibirMenu() {
+    printf("\\n");
+    printf("1. Cadastrar novo usuario\\n");
+    printf("2. Buscar usuario\\n");
+    printf("3. Autenticar usuario\\n");
+    printf("4. Remover usuario\\n");
+    printf("5. Visualizar tabela completa\\n");
+    printf("6. Exibir estatisticas\\n");
+    printf("7. Executar testes automaticos\\n");
+    printf("0. Sair\\n");
+    printf("Escolha uma opcao: ");
+}
+
+// ========== FUNCAO PRINCIPAL ==========
+
+int main() {
+    TabelaHash *tabela = criarTabelaHash();
+    int opcao;
+    char nomeUsuario[50], senha[50];
+    
+    printf("TABELA HASH - GERENCIAMENTO DE SENHAS\\n");
+    printf("Tratamento de Colisoes: ENCADEAMENTO\\n");
+    
+    do {
+        exibirMenu();
+        scanf("%d", &opcao);
+        getchar(); // Limpa buffer
+        
+        switch (opcao) {
+            case 1: // Cadastrar
+                printf("\\nNome de usuario: ");
+                fgets(nomeUsuario, 50, stdin);
+                nomeUsuario[strcspn(nomeUsuario, "\\n")] = 0;
+                
+                printf("Senha: ");
+                fgets(senha, 50, stdin);
+                senha[strcspn(senha, "\\n")] = 0;
+                
+                inserirUsuario(tabela, nomeUsuario, senha);
+                break;
+                
+            case 2: // Buscar
+                printf("\\nNome de usuario: ");
+                fgets(nomeUsuario, 50, stdin);
+                nomeUsuario[strcspn(nomeUsuario, "\\n")] = 0;
+                
+                buscarUsuario(tabela, nomeUsuario);
+                break;
+                
+            case 3: // Autenticar
+                printf("\\nNome de usuario: ");
+                fgets(nomeUsuario, 50, stdin);
+                nomeUsuario[strcspn(nomeUsuario, "\\n")] = 0;
+                
+                printf("Senha: ");
+                fgets(senha, 50, stdin);
+                senha[strcspn(senha, "\\n")] = 0;
+                
+                autenticarUsuario(tabela, nomeUsuario, senha);
+                break;
+                
+            case 4: // Remover
+                printf("\\nNome de usuario: ");
+                fgets(nomeUsuario, 50, stdin);
+                nomeUsuario[strcspn(nomeUsuario, "\\n")] = 0;
+                
+                removerUsuario(tabela, nomeUsuario);
+                break;
+                
+            case 5: // Visualizar
+                exibirTabelaHash(tabela);
+                break;
+                
+            case 6: // Estatisticas
+                exibirEstatisticas(tabela);
+                break;
+                
+            case 7: // Testes automaticos
+                testeAutomatico(tabela);
+                break;
+                
+            case 0: // Sair
+                printf("\\n");
+                destruirTabelaHash(tabela);
+                printf("Encerrando sistema...\\n");
+                break;
+                
+            default:
+                printf("\\nOpcao invalida! Tente novamente.\\n");
+        }
+        
+        if (opcao != 0) {
+            printf("\\nPressione ENTER para continuar...");
+            getchar();
+        }
+        
+    } while (opcao != 0);
+    
+    return 0;
+}`;
+
+        function aplicarSyntaxHighlight(codigo) {
+            codigo = codigo.replace(/\b(if|else|while|for|return|switch|case|break|do|continue|default|struct|typedef|void|int|char|float|double|long|unsigned|const|static|sizeof|NULL)\b/g, 
+                '<span class="keyword">$1</span>');
+            codigo = codigo.replace(/\b(Usuario|TabelaHash)\b/g, '<span class="type">$1</span>');
+            codigo = codigo.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="function">$1</span>(');
+            codigo = codigo.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, '<span class="string">"$1"</span>');
+            codigo = codigo.replace(/\/\/(.*?)$/gm, '<span class="comment">//$1</span>');
+            codigo = codigo.replace(/\b(\d+)\b/g, '<span class="number">$1</span>');
+            codigo = codigo.replace(/^(#include|#define)(.*?)$/gm, '<span class="preprocessor">$1$2</span>');
+            codigo = codigo.replace(/\b(TAMANHO_TABELA)\b/g, '<span class="define">$1</span>');
+            return codigo;
+        }
+
+        function renderizarCodigo() {
+            const linhas = codigoC.split('\n');
+            const totalLinhas = linhas.length;
+            
+            document.getElementById('totalLinhas').textContent = totalLinhas;
+            document.getElementById('totalLinhasBadge').textContent = `${totalLinhas} linhas`;
+            document.getElementById('lineNumbers').innerHTML = linhas.map((_, i) => `<span>${i + 1}</span>`).join('');
+            document.getElementById('codeDisplay').innerHTML = aplicarSyntaxHighlight(codigoC);
+            
+            const lineNumbers = document.getElementById('lineNumbers');
+            const codeContent = document.querySelector('.code-content');
+            
+            codeContent.addEventListener('scroll', () => {
+                lineNumbers.scrollTop = codeContent.scrollTop;
+            });
+        }
+
+        function copiarCodigo() {
+            navigator.clipboard.writeText(codigoC).then(() => {
+                alert('Codigo copiado para a area de transferencia!');
+            });
+        }
+
+        function baixarArquivo() {
+            const blob = new Blob([codigoC], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hash_table_senhas.c';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        renderizarCodigo();
+    </script>
+</body>
+</html>
